@@ -76,7 +76,7 @@ Request Header :
 - X-APi-TOKEN : Token
 
 Request Body :
-```json
+```javascript
 {
   "name": "hadin davidi",  // put buat update
   "password": "new password" // put buat update
