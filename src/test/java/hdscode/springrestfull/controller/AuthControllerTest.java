@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -132,7 +133,56 @@ class AuthControllerTest {
             assertNotNull(response.getErrors());
             log.info("test login wrong password, response : {}", response);
         });
+    }
 
+    @Test
+    void userLogoutUnauthorized() throws Exception{
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            });
+
+            assertNotNull(response.getErrors());
+            log.info("auth test - logout unauthorized response : {}", response);
+
+        });
+    }
+
+    @Test
+    void userLogoutSuccess() throws Exception{
+        User user = new User();
+        user.setUsername("testing");
+        user.setName("testing");
+        user.setPassword(BCrypt.hashpw("testing", BCrypt.gensalt()));
+        user.setToken("testing");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 10000);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "testing")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            });
+
+            assertNull(response.getErrors());
+            log.info("auth test - logout unauthorized response : {}", response);
+
+            // CEK IN DB
+
+            User userDB = userRepository.findById("testing").orElse(null);
+            assertNotNull(userDB);
+            assertNull(userDB.getToken());
+            assertNull(userDB.getTokenExpiredAt());
+
+        });
     }
 
 }
