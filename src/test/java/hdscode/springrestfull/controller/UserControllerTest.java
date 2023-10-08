@@ -3,9 +3,11 @@ package hdscode.springrestfull.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hdscode.springrestfull.entity.User;
 import hdscode.springrestfull.model.RegisterUserRequest;
 import hdscode.springrestfull.model.WebResponse;
 import hdscode.springrestfull.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Slf4j
 class UserControllerTest {
 
     @Autowired
@@ -57,6 +60,7 @@ class UserControllerTest {
             });
 
             assertEquals("Ok", response.getData());
+            log.info("test register success, response : {}", response);
         });
 
     }
@@ -80,6 +84,37 @@ class UserControllerTest {
             });
 
             assertNotNull(response.getErrors());
+            log.info("test register failed, response : {}", response);
+        });
+
+    }
+
+    @Test
+    void testRegisterDuplicate() throws Exception {
+
+        User user = new User();
+        user.setUsername("duplicate");
+        user.setPassword("password");
+        user.setName("duplicate");
+        userRepository.save(user);
+
+        RegisterUserRequest request = new RegisterUserRequest();
+        request.setUsername("duplicate");
+        request.setPassword("password");
+        request.setName("duplicate");
+
+        mockMvc.perform(
+                post("/api/users")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpect(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            });
+            assertNotNull(response.getErrors());
+            log.info("test register duplicate, response error : {}", response);
         });
 
     }
