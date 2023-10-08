@@ -5,6 +5,7 @@ import hdscode.springrestfull.model.LoginUserRequest;
 import hdscode.springrestfull.model.TokenResponse;
 import hdscode.springrestfull.repository.UserRepository;
 import hdscode.springrestfull.security.BCrypt;
+import org.hibernate.validator.internal.util.logging.Log_$logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,5 +45,13 @@ public class AuthService {
 
     private Long next30Days(){
         return System.currentTimeMillis() + (1000 * 60 * 24 * 30);
+    }
+
+
+    @Transactional
+    public void logout(User user){
+        user.setToken(null);
+        user.setTokenExpiredAt(null);
+        userRepository.save(user);
     }
 }
