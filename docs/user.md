@@ -2,6 +2,7 @@
 
 ### Register User
 End Point : POST /api/users
+
 Request Body : 
 ```json
 {
@@ -51,6 +52,9 @@ Response Body (Failed) :
 ### Get User
 End Point : GET /api/users/current
 
+Request Header :
+- X-API-TOKEN : Token
+
 Request Body : None
 
 Response Body (Success) :
@@ -73,7 +77,7 @@ Response Body (Failed) :
 End Point : PATCH /api/users/current
 
 Request Header : 
-- X-APi-TOKEN : Token
+- X-API-TOKEN : Token
 
 Request Body :
 ```javascript
@@ -101,4 +105,4 @@ Response Body (Failed) :
 ### Logout User
 Endpoint : DELETE /api/auth/logout
 Request Header:
-- X-API-TOKE : TOKEN
+- X-API-TOKEN : TOKEN
