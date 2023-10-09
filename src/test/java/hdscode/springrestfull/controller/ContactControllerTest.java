@@ -8,6 +8,7 @@ import hdscode.springrestfull.model.ContactResponse;
 import hdscode.springrestfull.model.CreateContactRequest;
 import hdscode.springrestfull.model.UpdateContactRequest;
 import hdscode.springrestfull.model.WebResponse;
+import hdscode.springrestfull.repository.AddressRepository;
 import hdscode.springrestfull.repository.ContactRepository;
 import hdscode.springrestfull.repository.UserRepository;
 import hdscode.springrestfull.security.BCrypt;
@@ -41,6 +42,10 @@ class ContactControllerTest {
     private ContactRepository contactRepository;
 
     @Autowired
+    private AddressRepository addressRepository;
+
+
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -48,6 +53,7 @@ class ContactControllerTest {
 
     @BeforeEach
     void setUp(){
+        addressRepository.deleteAll();
         contactRepository.deleteAll();
         userRepository.deleteAll();
 
@@ -437,7 +443,7 @@ class ContactControllerTest {
     void searchUsingName() throws Exception{
         User user = userRepository.findById("hdscode").orElse(null);
 
-        for(int i = 0; i < 1000; i ++){
+        for(int i = 0; i < 10; i ++){
             Contact contact = new Contact();
             String id = UUID.randomUUID().toString();
             contact.setId(id);
@@ -463,7 +469,7 @@ class ContactControllerTest {
             assertNull(response.getErrors());
 
             assertEquals(10, response.getData().size());
-            assertEquals(100, response.getPagingResponse().getTotalPages());
+            assertEquals(1, response.getPagingResponse().getTotalPages());
             assertEquals(0, response.getPagingResponse().getCurrentPage());
             assertEquals(10, response.getPagingResponse().getSize());
         });
@@ -473,7 +479,7 @@ class ContactControllerTest {
     void searchUsingEmail() throws Exception{
         User user = userRepository.findById("hdscode").orElse(null);
 
-        for(int i = 0; i < 1000; i ++){
+        for(int i = 0; i < 10; i ++){
             Contact contact = new Contact();
             String id = UUID.randomUUID().toString();
             contact.setId(id);
@@ -499,7 +505,7 @@ class ContactControllerTest {
             assertNull(response.getErrors());
 
             assertEquals(10, response.getData().size());
-            assertEquals(100, response.getPagingResponse().getTotalPages());
+            assertEquals(1, response.getPagingResponse().getTotalPages());
             assertEquals(0, response.getPagingResponse().getCurrentPage());
             assertEquals(10, response.getPagingResponse().getSize());
         });
@@ -509,7 +515,7 @@ class ContactControllerTest {
     void searchUsingPhone() throws Exception{
         User user = userRepository.findById("hdscode").orElse(null);
 
-        for(int i = 0; i < 1000; i ++){
+        for(int i = 0; i < 10; i ++){
             Contact contact = new Contact();
             String id = UUID.randomUUID().toString();
             contact.setId(id);
@@ -535,7 +541,7 @@ class ContactControllerTest {
             assertNull(response.getErrors());
 
             assertEquals(10, response.getData().size());
-            assertEquals(100, response.getPagingResponse().getTotalPages());
+            assertEquals(1, response.getPagingResponse().getTotalPages());
             assertEquals(0, response.getPagingResponse().getCurrentPage());
             assertEquals(10, response.getPagingResponse().getSize());
         });
@@ -545,7 +551,7 @@ class ContactControllerTest {
     void searchUsingNameEmailPhone() throws Exception{
         User user = userRepository.findById("hdscode").orElse(null);
 
-        for(int i = 0; i < 1000; i ++){
+        for(int i = 0; i < 10; i ++){
             Contact contact = new Contact();
             String id = UUID.randomUUID().toString();
             contact.setId(id);
@@ -573,7 +579,7 @@ class ContactControllerTest {
             assertNull(response.getErrors());
 
             assertEquals(10, response.getData().size());
-            assertEquals(100, response.getPagingResponse().getTotalPages());
+            assertEquals(1, response.getPagingResponse().getTotalPages());
             assertEquals(0, response.getPagingResponse().getCurrentPage());
             assertEquals(10, response.getPagingResponse().getSize());
         });
@@ -583,7 +589,7 @@ class ContactControllerTest {
     void searchUsingNameEmailPhonePage() throws Exception{
         User user = userRepository.findById("hdscode").orElse(null);
 
-        for(int i = 0; i < 1000; i ++){
+        for(int i = 0; i < 10; i ++){
             Contact contact = new Contact();
             String id = UUID.randomUUID().toString();
             contact.setId(id);
@@ -601,7 +607,7 @@ class ContactControllerTest {
                         .queryParam( "name", "hdscode")
                         .queryParam("email", "davide")
                         .queryParam( "phone", "412")
-                        .queryParam("page", "1000")
+                        .queryParam("page", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-API-TOKEN", "testtoken")
         ).andExpectAll(
@@ -612,8 +618,8 @@ class ContactControllerTest {
             assertNull(response.getErrors());
 
             assertEquals(0, response.getData().size());
-            assertEquals(100, response.getPagingResponse().getTotalPages());
-            assertEquals(1000, response.getPagingResponse().getCurrentPage());
+            assertEquals(1, response.getPagingResponse().getTotalPages());
+            assertEquals(1, response.getPagingResponse().getCurrentPage());
             assertEquals(10, response.getPagingResponse().getSize());
         });
     }

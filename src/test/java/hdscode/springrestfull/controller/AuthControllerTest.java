@@ -8,6 +8,8 @@ import hdscode.springrestfull.model.LoginUserRequest;
 import hdscode.springrestfull.model.RegisterUserRequest;
 import hdscode.springrestfull.model.TokenResponse;
 import hdscode.springrestfull.model.WebResponse;
+import hdscode.springrestfull.repository.AddressRepository;
+import hdscode.springrestfull.repository.ContactRepository;
 import hdscode.springrestfull.repository.UserRepository;
 import hdscode.springrestfull.security.BCrypt;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +42,19 @@ class AuthControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private ContactRepository contactRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
+
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp(){
+        addressRepository.deleteAll();
+        contactRepository.deleteAll();
         userRepository.deleteAll();
     }
 
