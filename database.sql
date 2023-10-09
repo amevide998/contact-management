@@ -22,11 +22,11 @@ drop table contacts;
 create table contacts
 (
     id varchar(100) not null,
-    username varchar(40) not null,
-    firstname varchar(25) not null,
-    lastname varchar(25),
-    phone varchar(20),
-    email varchar(40),
+    username varchar(100) not null,
+    firstname varchar(100) not null,
+    lastname varchar(100),
+    phone varchar(100),
+    email varchar(100),
     primary key(id),
     foreign key fk_users_contacts(username) references users(username)
 )ENGINE InnoDb;
@@ -43,6 +43,7 @@ create table addresses
     street varchar(100),
     city varchar(100),
     country varchar(100) not null,
+    province varchar(100),
     postal_code varchar(10),
     primary key(id),
     foreign key fk_contact_adress(contact_id) references contacts(id)
