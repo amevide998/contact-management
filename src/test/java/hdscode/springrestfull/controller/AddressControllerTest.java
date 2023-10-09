@@ -7,6 +7,7 @@ import hdscode.springrestfull.entity.Contact;
 import hdscode.springrestfull.entity.User;
 import hdscode.springrestfull.model.AddressResponse;
 import hdscode.springrestfull.model.CreateAddressRequest;
+import hdscode.springrestfull.model.UpdateAddressRequest;
 import hdscode.springrestfull.model.WebResponse;
 import hdscode.springrestfull.repository.AddressRepository;
 import hdscode.springrestfull.repository.ContactRepository;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -196,6 +198,207 @@ class AddressControllerTest {
 
             log.info("test create address success, response : {}", response.getData());
         });
-
     }
+
+    @Test
+    void updateAddressBadRequest() throws Exception {
+        UpdateAddressRequest updateAddressRequest = new UpdateAddressRequest();
+        updateAddressRequest.setCountry("");
+        mockMvc.perform(
+                put("/api/contacts/test1234/addresses/2345")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateAddressRequest))
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+            log.info("test update address bad request, response : {}", response);
+        });
+    }
+
+    @Test
+    void updateAddressNotFound() throws Exception {
+        UpdateAddressRequest updateAddressRequest = new UpdateAddressRequest();
+        updateAddressRequest.setStreet("update");
+        updateAddressRequest.setCity("update");
+        updateAddressRequest.setProvince("update");
+        updateAddressRequest.setPostalCode("update");
+        updateAddressRequest.setCountry("update");
+
+        mockMvc.perform(
+                put("/api/contacts/test1234/addresses/512314")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateAddressRequest))
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+            log.info("test update address bad request, response : {}", response);
+        });
+    }
+
+
+    @Test
+    void updateAddressSuccess() throws Exception {
+
+        Contact contact = contactRepository.findById("test1234").orElse(null);
+        Address address = new Address();
+        address.setId("2345");
+        address.setCity("tangerang");
+        address.setStreet("pagedangan");
+        address.setProvince("Banten");
+        address.setPostalCode("12345");
+        address.setCountry("indonesia");
+        address.setContact(contact);
+        addressRepository.save(address);
+
+        UpdateAddressRequest updateAddressRequest = new UpdateAddressRequest();
+        updateAddressRequest.setStreet("update");
+        updateAddressRequest.setCity("update");
+        updateAddressRequest.setProvince("update");
+        updateAddressRequest.setPostalCode("update");
+        updateAddressRequest.setCountry("update");
+
+        mockMvc.perform(
+                put("/api/contacts/test1234/addresses/2345")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateAddressRequest))
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNull(response.getErrors());
+
+            // cek response
+            assertEquals("2345", response.getData().getId());
+            assertEquals("update", response.getData().getCity());
+            assertEquals("update", response.getData().getStreet());
+            assertEquals("update", response.getData().getProvince());
+            assertEquals("update", response.getData().getPostalCode());
+            assertEquals("update", response.getData().getCountry());
+
+            log.info("test create address success, response : {}", response.getData());
+
+            // cek in db
+            Address addressDb = addressRepository.findFirstByContactAndId(contact, "2345").orElseThrow();
+            assertEquals("update", addressDb.getStreet());
+            assertEquals("update", addressDb.getCity());
+            assertEquals("update", addressDb.getProvince());
+            assertEquals("update", addressDb.getPostalCode());
+            assertEquals("update", addressDb.getCountry());
+        });
+    }
+
+    @Test
+    void deleteAddressNotFound() throws Exception {
+        mockMvc.perform(
+                delete("/api/contacts/test1234/addresses/512314")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+            log.info("test delete address bad request, response : {}", response);
+        });
+    }
+
+    @Test
+    void deleteAddressSuccess() throws Exception {
+
+        Contact contact = contactRepository.findById("test1234").orElse(null);
+        Address address = new Address();
+        address.setId("2345");
+        address.setCity("tangerang");
+        address.setStreet("pagedangan");
+        address.setProvince("Banten");
+        address.setPostalCode("12345");
+        address.setCountry("indonesia");
+        address.setContact(contact);
+        addressRepository.save(address);
+
+        mockMvc.perform(
+                delete("/api/contacts/test1234/addresses/2345")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNull(response.getErrors());
+
+
+            // cek in db
+            Address addressDb = addressRepository.findFirstByContactAndId(contact, "2345").orElse(null);
+            assertNull(addressDb);
+        });
+    }
+
+    @Test
+    void listAddressNotFound() throws Exception {
+        mockMvc.perform(
+                get("/api/contacts/notfound/addresses")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+            log.info("test list address bad request, response : {}", response);
+        });
+    }
+
+    @Test
+    void listAddressSuccess() throws Exception {
+
+        Contact contact = contactRepository.findById("test1234").orElse(null);
+        for(int i = 0; i < 10; i++){
+            Address address = new Address();
+            address.setId("2345"+i);
+            address.setCity("tangerang");
+            address.setStreet("pagedangan");
+            address.setProvince("Banten");
+            address.setPostalCode("12345");
+            address.setCountry("indonesia");
+            address.setContact(contact);
+            addressRepository.save(address);
+        }
+
+        mockMvc.perform(
+                get("/api/contacts/test1234/addresses")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "testtoken")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<List<AddressResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNull(response.getErrors());
+
+            // cek in db
+            assertEquals(10, response.getData().size());
+            log.info("test list address success, response : {}", response.getData());
+        });
+    }
+
 }
